@@ -1,0 +1,141 @@
+/* KIS design tokens — paper (management) + dark (staff). Mirrors the Claude Design prototypes exactly. */
+:root {
+  /* ── Paper / management ── */
+  --p-page: #EFEBDF;
+  --p-surface: #F7F4EA;
+  --p-card: #FBF9F2;
+  --p-thead: #F3F0E4;
+  --p-hover: #F3F0E1;
+  --p-white: #FFFFFF;
+  --p-border: #DCD6C4;
+  --p-border-row: #E9E4D4;
+  --p-border-input: #CFC9B6;
+  --p-text: #1F241F;
+  --p-text-2: #4A5348;
+  --p-text-3: #6E7266;
+  --p-text-4: #9A9C8E;
+  --p-ink: #2E3A2E;
+  --p-ink-2: #263026;
+  --p-ink-border: #3D4A3D;
+  --p-ink-muted: #A9B3A3;
+  --p-ink-text: #C6CDBE;
+  --p-on-ink: #F7F4EA;
+  --p-chip: #E4DFCE;
+  --p-amber-bg: #FBF3DF;
+  --p-amber-border: #E2CD96;
+  --p-amber-fg: #8A6D1F;
+  --p-amber-dot: #C99A2E;
+  --p-amber-pill: #F5E3B3;
+  --p-red-bg: #F6E3E0;
+  --p-red-pill: #F0CFC9;
+  --p-red-border: #DFB3AC;
+  --p-red-fg: #96382E;
+  --p-red-strong: #C0392B;
+  --p-green-bg: #E0E8DA;
+  --p-green-fg: #48603A;
+  --p-green-strong: #3E6B45;
+  --p-purple-bg: #E4E0EE;
+  --p-purple-fg: #5B5378;
+  --p-blue-bg: #DCE4EC;
+  --p-blue-fg: #37536B;
+  --p-teal-bg: #DCE8E6;
+  --p-teal-fg: #33625C;
+  --p-brown-bg: #EADFD3;
+  --p-brown-fg: #7A5A32;
+  --p-grey-bg: #E6E2DA;
+  --p-grey-fg: #6E6A5E;
+  --p-rust-bg: #EADBD3;
+  --p-rust-fg: #8A4B2E;
+
+  /* ── Sidebar ── */
+  --s-bg: #242C24;
+  --s-border: #384237;
+  --s-active: #2E382E;
+  --s-text: #F2F1EA;
+  --s-text-2: #B9C2B4;
+  --s-muted: #9BA398;
+  --s-logo: #EDE6D6;
+
+  /* ── Dark / staff tablet ── */
+  --d-page: #101311;
+  --d-header-border: #262B25;
+  --d-card: #1A1E1B;
+  --d-card-2: #14171A;
+  --d-card-3: #161A17;
+  --d-sheet: #181C18;
+  --d-key: #1D221E;
+  --d-tile-icon: #242923;
+  --d-chip: #2A2F28;
+  --d-border: #2E342E;
+  --d-border-2: #343A33;
+  --d-border-3: #3A4139;
+  --d-text: #F2F1EA;
+  --d-text-2: #C9CFC4;
+  --d-text-3: #B9C2B4;
+  --d-muted: #9BA398;
+  --d-dim: #5E665C;
+  --d-cream: #EDE6D6;
+  --d-on-cream: #14171A;
+  --d-gold: #E0C989;
+  --d-gold-2: #E0A83C;
+  --d-amber-chip: #3A3320;
+  --d-amber-border: #8A7A3A;
+  --d-red-chip: #3A211E;
+  --d-red-fg: #E58B80;
+  --d-red-border: #7A3A34;
+  --d-red-badge-fg: #F2D7D2;
+  --d-green-bg: #22352A;
+  --d-green-border: #3B5A46;
+  --d-green-fg: #7FC79A;
+  --d-green-dot: #8FA88F;
+  --d-disabled: #4A4F48;
+
+  --font: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--p-page);
+  color: var(--p-text);
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--p-text-2); text-decoration: none; }
+a:hover { color: var(--p-text); }
+button, input, select, textarea { font-family: inherit; }
+button { cursor: pointer; }
+input, textarea { color: inherit; }
+input::placeholder { color: var(--p-text-4); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #D5CFBC; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+.dark ::-webkit-scrollbar { width: 0; height: 0; }
+.sidebar ::-webkit-scrollbar { width: 8px; }
+.sidebar ::-webkit-scrollbar-thumb { background: #4A5348; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+.fade-in { animation: fadeIn .2s; }
+.pop-up { animation: popUp .2s; }
+.sheet-up { animation: sheetUp .22s; }
+
+/* Generic hover helpers used by ported prototypes (style-hover attributes) */
+.row-hover:hover { background: var(--p-hover) !important; }
+.tile-hover:hover { border-color: #4A5348 !important; }
+.dark .tile-hover:hover { border-color: #4A5348 !important; }
+.btn-hover:hover { filter: brightness(.97); }
+
+/* Number display always LTR even in RTL layouts */
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
+
+/* text helpers */
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.uc { text-transform: uppercase; letter-spacing: .4px; }

@@ -1,0 +1,70 @@
+/** Staff tablet (STF-INV-04 / STF-TRF-01..03) — TEXT dictionary (verbatim from the prototype). */
+export const TEXT = {
+  en: {
+    back: 'Back', homeTitle: 'Good morning — today’s tasks', daily: 'Daily', count: 'Physical count',
+    order: 'Order request', orderSub: 'Request items from the Main Kitchen', fulfill: 'Fulfill & send',
+    fulfillSub: 'Send against open requests', receive: 'Confirm receipt', receiveSub: 'Confirm what actually arrived',
+    item: 'Item', countUnit: 'Count unit', actualQty: 'Actual quantity', skip: 'Skip this item',
+    viewOne: 'One-by-one', viewList: 'List', notCounted: '—', submitCount: 'Submit count', counted: 'counted',
+    confirmNext: 'Confirm & next', summary: 'Request summary', submitReq: 'Submit request',
+    orderHint: 'Enter the quantity you need for each item. Leave 0 to skip.',
+    fqHint: 'Open requests waiting for fulfillment. Sending ± the requested amount is normal.',
+    rqHint: 'Incoming transfers pending your confirmation. The number you confirm becomes the official stock.',
+    itemCol: 'Item', requested: 'Requested', sending: 'Sending', value: 'Value', sent: 'Sent', received: 'Received',
+    status: 'Status', pending: 'Pending', pendingReceipt: 'Pending receipt', resultPreview: 'Result preview',
+    submitSend: 'Submit send', receiptNote: 'Confirmed quantities enter stock at carried cost',
+    confirmReceipt: 'Confirm receipt', done: 'Done', cancel: 'Cancel', confirm: 'Confirm', backHome: 'Back to tasks',
+    skipWhy: 'Why are you skipping this item?', lines: 'lines', items: 'items',
+    skipR1: 'Item not found', skipR2: 'Not accessible right now', skipR3: 'Damaged / unusable', skipR4: 'Other',
+    short: 'Short', damaged: 'Damaged', flagIssue: 'Flag issue', ok: 'OK',
+    countDoneT: 'Count submitted', countDoneB: 'Your count was sent for review. Management will reconcile it against expected stock.',
+    orderDoneT: 'Request sent to Main Kitchen', orderDoneB: 'Your request is now in the Main Kitchen fulfillment queue. You’ll confirm quantities when the transfer arrives.',
+    fulfillDoneT: 'Transfer sent', fulfillDoneB: 'Stock left Main Kitchen at cost and is pending receipt at the destination.',
+    receiveDoneT: 'Receipt confirmed', receiveDoneB: 'Confirmed quantities entered your stock at carried cost. Any variance was flagged to management.',
+    confirmOrderT: 'Submit this request?', confirmFulfillT: 'Send this transfer?', confirmReceiveT: 'Confirm this receipt?',
+    titles: { home: 'Today', count: 'Physical count', order: 'Order request', fq: 'Fulfillment queue', fd: 'Fulfill & send', rq: 'Incoming transfers', rd: 'Confirm receipt', done: '' },
+    locs: { mk: 'Main Kitchen', rock: 'Rock', kad: 'Kaddoum' },
+    units: 'units', vsRequested: 'vs requested', requestedPrefix: 'Requested: ', sentPrefix: 'Sent: ',
+    valueLabel: 'value', pendingAt: 'pending receipt at', valueEntering: 'Value entering stock: ', variance: 'variance', variancesFlagged: 'variance(s) will be flagged to management',
+    emptyQueue: 'No open requests right now.', emptyIncoming: 'No incoming transfers pending confirmation.',
+  },
+  ar: {
+    back: 'رجوع', homeTitle: 'صباح الخير — مهام اليوم', daily: 'يومي', count: 'الجرد الفعلي',
+    order: 'طلب توريد', orderSub: 'اطلب أصنافاً من المطبخ الرئيسي', fulfill: 'تجهيز وإرسال',
+    fulfillSub: 'أرسل حسب الطلبات المفتوحة', receive: 'تأكيد الاستلام', receiveSub: 'أكّد ما وصل فعلياً',
+    item: 'صنف', countUnit: 'وحدة العدّ', actualQty: 'الكمية الفعلية', skip: 'تخطي هذا الصنف',
+    viewOne: 'صنف صنف', viewList: 'قائمة', notCounted: '—', submitCount: 'إرسال الجرد', counted: 'مُعدّ',
+    confirmNext: 'تأكيد والتالي', summary: 'ملخص الطلب', submitReq: 'إرسال الطلب',
+    orderHint: 'أدخل الكمية المطلوبة لكل صنف. اترك 0 للتخطي.',
+    fqHint: 'طلبات مفتوحة بانتظار التجهيز. الإرسال بزيادة أو نقصان عن المطلوب أمر طبيعي.',
+    rqHint: 'تحويلات واردة بانتظار تأكيدك. الرقم الذي تؤكده يصبح رقم المخزون الرسمي.',
+    itemCol: 'الصنف', requested: 'المطلوب', sending: 'سيُرسل', value: 'القيمة', sent: 'المرسل', received: 'المستلم',
+    status: 'الحالة', pending: 'قيد الانتظار', pendingReceipt: 'بانتظار الاستلام', resultPreview: 'معاينة النتيجة',
+    submitSend: 'تأكيد الإرسال', receiptNote: 'الكميات المؤكدة تدخل المخزون بالتكلفة المحمّلة',
+    confirmReceipt: 'تأكيد الاستلام', done: 'تم', cancel: 'إلغاء', confirm: 'تأكيد', backHome: 'عودة إلى المهام',
+    skipWhy: 'لماذا تتخطى هذا الصنف؟', lines: 'بنود', items: 'أصناف',
+    skipR1: 'الصنف غير موجود', skipR2: 'غير متاح حالياً', skipR3: 'تالف / غير صالح', skipR4: 'سبب آخر',
+    short: 'ناقص', damaged: 'تالف', flagIssue: 'تبليغ مشكلة', ok: 'حسناً',
+    countDoneT: 'تم إرسال الجرد', countDoneB: 'أُرسل جردك للمراجعة. ستقوم الإدارة بمطابقته مع المخزون المتوقع.',
+    orderDoneT: 'أُرسل الطلب إلى المطبخ الرئيسي', orderDoneB: 'طلبك الآن في قائمة التجهيز لدى المطبخ الرئيسي. ستؤكد الكميات عند وصول التحويل.',
+    fulfillDoneT: 'تم إرسال التحويل', fulfillDoneB: 'خرج المخزون من المطبخ الرئيسي بالتكلفة وهو بانتظار الاستلام في الوجهة.',
+    receiveDoneT: 'تم تأكيد الاستلام', receiveDoneB: 'دخلت الكميات المؤكدة مخزونك بالتكلفة المحمّلة. أي فرق تم تبليغه للإدارة.',
+    confirmOrderT: 'إرسال هذا الطلب؟', confirmFulfillT: 'إرسال هذا التحويل؟', confirmReceiveT: 'تأكيد هذا الاستلام؟',
+    titles: { home: 'اليوم', count: 'الجرد الفعلي', order: 'طلب توريد', fq: 'قائمة التجهيز', fd: 'تجهيز وإرسال', rq: 'التحويلات الواردة', rd: 'تأكيد الاستلام', done: '' },
+    locs: { mk: 'المطبخ الرئيسي', rock: 'روك', kad: 'قدّوم' },
+    units: 'وحدة', vsRequested: 'عن المطلوب', requestedPrefix: 'المطلوب: ', sentPrefix: 'المرسل: ',
+    valueLabel: 'قيمة', pendingAt: 'بانتظار الاستلام لدى', valueEntering: 'تدخل قيمة ', variance: 'فرق', variancesFlagged: 'فرق سيُبلّغ للإدارة',
+    emptyQueue: 'لا طلبات مفتوحة حالياً.', emptyIncoming: 'لا تحويلات واردة بانتظار التأكيد.',
+  },
+};
+
+export type TabletText = typeof TEXT.en;
+
+/** Role → short label shown next to the staff name (prototype: "Ziad · Store"). */
+export const ROLE_LABELS: Record<string, [string, string]> = {
+  storekeeper: ['Store', 'مخزن'], production: ['Production', 'إنتاج'], prep: ['Prep', 'تحضير'], service: ['Service', 'خدمة'],
+  manager: ['Manager', 'مدير'], owner: ['Owner', 'مالك'], superuser: ['Superuser', 'مشرف'], accountant: ['Accountant', 'محاسب'],
+  invoice: ['Invoices', 'فواتير'], cost: ['Cost control', 'مراقبة التكاليف'],
+};
+
+export const TODAY_LABEL = { en: 'Wednesday, Aug 12, 2026', ar: 'الأربعاء ١٢ آب ٢٠٢٦' };
