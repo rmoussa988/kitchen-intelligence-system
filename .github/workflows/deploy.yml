@@ -1,50 +1,51 @@
-name: Build & deploy to Hostinger
+name: Deploy to GitHub Pages
 
-# Builds the Vite app and uploads the static `dist/` to Hostinger over FTP on every push to main.
-# Required repo secrets (Settings → Secrets and variables → Actions):
-#   FTP_SERVER    e.g. ftp.yourdomain.com  (or the IP/host from hPanel → Files → FTP Accounts)
-#   FTP_USERNAME  the FTP account username from hPanel
-#   FTP_PASSWORD  the FTP account password
-# Optional repo variable:
-#   FTP_TARGET_DIR  server folder to publish into (default: public_html/). Use e.g. public_html/kis/
-#                   for a subfolder, or your subdomain's folder.
-# The Supabase values are set as secrets too (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).
+# Builds the Vite app and publishes dist/ to GitHub Pages on every push to main.
+# Served at https://rmoussa988.github.io/kitchen-intelligence-system/ (project subpath → --base).
+# Supabase config comes from repo secrets VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.
 
 on:
   push:
     branches: [main]
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 concurrency:
-  group: deploy-hostinger
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
       - name: Build
-        run: npm run build
+        run: npm run build -- --base=/kitchen-intelligence-system/
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - uses: actions/configure-pages@v5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps            # Hostinger supports FTPS; change to ftp if your plan needs plain FTP
-          local-dir: ./dist/
-          server-dir: ${{ vars.FTP_TARGET_DIR || 'public_html/' }}
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
