@@ -53,19 +53,20 @@ export default function ItemsModule() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spItem, spTab, spCat]);
 
-  const item: Item = (itemId ? store.item(itemId) : undefined) ?? store.state.items[0];
-  const detail = useMemo(() => detailFor(item, store.state), [item, store.state]);
+  // item may be undefined on a fresh/empty database — guard everything below and show the list.
+  const item: Item | undefined = (itemId ? store.item(itemId) : undefined) ?? store.state.items[0];
+  const detail = useMemo(() => (item ? detailFor(item, store.state) : null), [item, store.state]);
 
   // keep the tab valid for the item's type (like the prototype's `tab` fallback)
-  const tabKeys = tabsFor(item);
+  const tabKeys = item ? tabsFor(item) : (['general'] as TabKey[]);
   const effTab: TabKey = tabKeys.includes(tab) ? tab : 'general';
 
-  const convRows: ConvView[] = detail.conv.concat(ms.extraConv[item.id] ?? []).map((c, i) => {
+  const convRows: ConvView[] = (item && detail) ? detail.conv.concat(ms.extraConv[item.id] ?? []).map((c, i) => {
     const ov = ms.factors[item.id + ':' + i];
     const overridden = ov !== undefined;
     const factor = overridden ? ov : c.factor;
     return { ...c, idx: i, overridden, liveFactor: factor, liveRule: `${c.prefix} ${factor} ${c.suffix}`, liveEff: overridden ? DEMO_DATE : c.eff };
-  });
+  }) : [];
 
   const openItem = (id: string) => { setItemId(id); setView('detail'); setTab('units'); };
   const backToList = () => { setView('list'); if (spItem) setSp({}, { replace: true }); };
@@ -79,6 +80,7 @@ export default function ItemsModule() {
     return extra ? rows.concat(extra) : rows;
   };
   const syncPurchFactor = (rows: LiveRule[]) => {
+    if (!item) return;
     const f = resolvePurchFactor(item.purch, item.base, rows);
     if (f === undefined || f === item.purchFactor) return;
     const id = item.id;
@@ -88,6 +90,7 @@ export default function ItemsModule() {
   // ── factor edit (versioned, applies from today) ──
   const openEdit = (cv: ConvView) => { setEdit({ idx: cv.idx, rule: cv.liveRule, prefix: cv.prefix, suffix: cv.suffix, old: cv.liveFactor }); setEditVal(String(cv.liveFactor)); };
   const editSave = () => {
+    if (!item) return;
     const v = parseFloat(editVal);
     if (edit && !isNaN(v) && v > 0) {
       const e = edit;
@@ -115,6 +118,7 @@ export default function ItemsModule() {
       setForm(null);
       toast(t.toastItem);
     } else {
+      if (!item) return;
       const from = f1.trim().toUpperCase(), factor = parseFloat(f2), to = (f3.trim() || item.base).toUpperCase();
       if (isNaN(factor) || factor <= 0) return;
       const c: ConvRow = { rule: `1 ${from} = ${factor} ${to}`, kind: 'fixed', sub: null, resolved: `1 ${from} → ${factor} ${to}`, eff: DEMO_DATE, factor, prefix: `1 ${from} =`, suffix: to };
@@ -130,6 +134,7 @@ export default function ItemsModule() {
   const nm = (o: Item) => (isAr ? o.ar : o.en);
 
   const openRecipe = () => {
+    if (!item) { go('recipes'); return; }
     const rid = recipeIdForItem(item.id);
     if (rid) go('recipes', { params: { recipe: rid } });
     else go('recipes');
@@ -137,13 +142,13 @@ export default function ItemsModule() {
 
   return (
     <>
-      {view === 'list'
+      {view === 'list' || !item || !detail
         ? <ItemList search={search} setSearch={setSearch} typeFilter={typeFilter} setTypeFilter={setTypeFilter} onOpen={openItem} onNew={openNewItem} />
         : <ItemDetailView item={item} detail={detail} convRows={convRows} tab={effTab} setTab={setTab} onBack={backToList} onEdit={openEdit} onAddConv={openAddConv} onOpenRecipe={openRecipe} />}
 
       {form && (
         <Dialog onClose={() => setForm(null)}>
-          <div style={{ fontSize: 17, fontWeight: 700 }}>{form === 'item' ? t.formNewItem : t.formAddConv + nm(item)}</div>
+          <div style={{ fontSize: 17, fontWeight: 700 }}>{form === 'item' ? t.formNewItem : t.formAddConv + (item ? nm(item) : '')}</div>
           <div style={{ fontSize: 13, color: P.text3, marginTop: 4, lineHeight: 1.5 }}>{form === 'item' ? t.formSubItem : t.formSubConv}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 14 }}>
             <FormInput autoFocus value={f1} onChange={setF1} placeholder={form === 'item' ? t.fp1Item : t.fp1Conv} />
