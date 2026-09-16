@@ -1,6 +1,7 @@
 import type { CoreState, Item, Location, Supplier, User, Movement, Transfer, WasteRecord, ProductionPlan, Batch, Delivery, PurchaseOrder, SupplierInvoice, Expense, ShiftClosing, FxRate, Alert, AuditEntry } from './types';
+import { RECIPES } from '../modules/recipes/data';
 
-export const STORE_VERSION = 1;
+export const STORE_VERSION = 2;
 
 export const LOCATIONS: Location[] = [
   { id: 'mk', en: 'Main Kitchen', ar: 'المطبخ الرئيسي', type: 'production', sells: false, responsibilities: ['receiving', 'production', 'transfers-out'], storageAreas: ['Store room', 'Walk-in fridge', 'Freezer', 'Dry store'], active: true },
@@ -225,6 +226,7 @@ export function buildInitialState(): CoreState {
     },
     locations: LOCATIONS,
     items: ITEMS,
+    recipes: RECIPES,
     suppliers: SUPPLIERS,
     users: USERS,
     movements: MOVEMENTS,

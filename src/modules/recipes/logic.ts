@@ -42,7 +42,7 @@ export function unitFactor(from: string, to: string): number | undefined {
 export function lineCpu(line: RecipeLine, ms: RecipesState, store: StoreApi): number {
   const map = line.itemId ? { id: line.itemId, factor: line.factor } : mappedItem(line.en);
   if (!map) return line.cpu;
-  const rec = allRecipes(ms).find((r) => r.id === map.id);
+  const rec = allRecipes(store, ms).find((r) => r.id === map.id);
   if (rec) {
     const rc = recipeCost(rec, ms, store);
     const f = line.factor ?? map.factor ?? unitFactor(line.unit, rc.yUnit);
@@ -59,8 +59,11 @@ export function lineItemId(line: RecipeLine): string | undefined {
   return line.itemId ?? mappedItem(line.en)?.id;
 }
 
-export const allRecipes = (ms: RecipesState): Recipe[] => RECIPES.concat(ms.extraRecipes);
-export const findRecipe = (ms: RecipesState, id: string | null | undefined): Recipe | undefined => (id ? allRecipes(ms).find((r) => r.id === id) : undefined);
+/** All recipes = the DB-backed catalog (store.state.recipes) plus any session-only ones in module state. */
+export const allRecipes = (store: StoreApi, ms: RecipesState): Recipe[] => store.state.recipes.concat(ms.extraRecipes);
+export const findRecipe = (store: StoreApi, ms: RecipesState, id: string | null | undefined): Recipe | undefined => (id ? allRecipes(store, ms).find((r) => r.id === id) : undefined);
+/** The recipe id for a given item id (a recipe output whose id equals the item's), or undefined. */
+export const recipeIdForItem = (store: StoreApi, itemId: string): string | undefined => (store.state.recipes.some((r) => r.id === itemId) ? itemId : undefined);
 export const foodLines = (r: Recipe, ms: RecipesState): RecipeLine[] => r.food.concat(ms.extraLines[r.id] ?? []);
 export const pkgLines = (r: Recipe, ms: RecipesState): RecipeLine[] => r.pkg.concat(ms.extraPkg[r.id] ?? []);
 export const qtyKey = (r: Recipe, kind: 'f' | 'p', i: number) => `${r.id}:${kind}:${i}`;
@@ -108,7 +111,7 @@ export function kindPool(kind: LineKind, ms: RecipesState, store: StoreApi): Poo
   }
   if (kind === 'subr' || kind === 'rcp' || kind === 'prepitem') {
     const type = POOL_TYPE[kind];
-    return allRecipes(ms).filter((r) => r.type === type).map((r) => { const c = recipeCost(r, ms, store); return { en: r.en, ar: r.ar, cpu: c.total, unit: c.yUnit }; });
+    return allRecipes(store, ms).filter((r) => r.type === type).map((r) => { const c = recipeCost(r, ms, store); return { en: r.en, ar: r.ar, cpu: c.total, unit: c.yUnit }; });
   }
   const fromStore = store.state.items.filter((i) => i.type === 'raw').map((i) => ({ en: i.en, ar: i.ar, cpu: i.cost, unit: i.base, itemId: i.id }));
   return dedupe(fromStore, ITEMS_POOL.filter((p) => !mappedItem(p.en)));

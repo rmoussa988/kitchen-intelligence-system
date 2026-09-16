@@ -5,25 +5,9 @@
  * `store.state.items` where the line name maps to a seed item (see ITEM_MAP); otherwise the literal `cpu`.
  */
 
-export type RecipeType = 'sub' | 'recipe' | 'prep' | 'menu';
-export type SubLine = [string, string, string, string]; // name, qty, unit cost, cost
-export interface RecipeLine {
-  en: string; ar: string; qty: number; unit: string; unitAr?: string;
-  /** Literal unit cost per `unit` (fallback when the line is not mapped to a store item). */
-  cpu: number;
-  isSub?: boolean; sub?: SubLine[];
-  /** Explicit store item mapping (lines added from the pool); by-name mapping is used otherwise. */
-  itemId?: string;
-  /** Explicit line-unit → base-unit factor override. */
-  factor?: number;
-}
-export type DiffMark = '+' | '~' | '−' | '=';
-export type DiffRow = [DiffMark, string, string];
-export interface RecipeVersion { v: number; date: string; who: string; reason: string; reasonAr?: string; cost: string; txns: number; diff: DiffRow[]; costChange: string }
-export interface Recipe {
-  id: string; en: string; ar: string; type: RecipeType; yield: string; price?: number; threshold?: number; prevCost: number;
-  food: RecipeLine[]; pkg: RecipeLine[]; versions: RecipeVersion[];
-}
+// Recipe types now live in the store (CoreState owns recipes); re-exported here for existing imports.
+export type { RecipeType, SubLine, RecipeLine, DiffMark, DiffRow, RecipeVersion, Recipe } from '../../store/types';
+import type { Recipe, RecipeType } from '../../store/types';
 
 export const TYPE_STYLE: Record<RecipeType, { bg: string; fg: string }> = {
   sub: { bg: '#E4E0EE', fg: '#5B5378' }, recipe: { bg: '#DCE6EC', fg: '#37536B' }, prep: { bg: '#E0E8DA', fg: '#48603A' }, menu: { bg: '#EADFD3', fg: '#7A5A32' },
@@ -231,11 +215,7 @@ export const RECIPES: Recipe[] = [
     ] },
 ];
 
-/** Id vocabulary shared with the Items module ("Open in Recipe builder"). */
-export const RECIPE_IDS = RECIPES.map((r) => r.id);
-export function recipeIdForItem(itemId: string): string | undefined {
-  return RECIPE_IDS.includes(itemId) ? itemId : undefined;
-}
+// recipeIdForItem now lives in ./logic (store-aware — recipes are a live DB entity, not this static list).
 
 /** Pool entry for the "Add line" form (mirrors the prototype's ITEMS / PKG_ITEMS catalogs). */
 export interface PoolItem { en: string; ar: string; cpu: number; unit: string; itemId?: string }

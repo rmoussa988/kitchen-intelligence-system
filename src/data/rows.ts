@@ -39,6 +39,9 @@ import type {
   MovementType,
   PlanStatus,
   POStatus,
+  RecipeLine,
+  RecipeType,
+  RecipeVersion,
   Role,
   Scope,
   ShiftClosing,
@@ -309,6 +312,28 @@ export interface BatchRow {
   updated_at: string;
 }
 
+/**
+ * `recipes` — maps 1:1 to CoreState.recipes (Recipe[]). Lines and versions are display-shaped value
+ * objects stored as jsonb (like batches.stages). Rename: prev_cost←prevCost. `transfer`/`meta` are
+ * reserved columns not yet used by the app.
+ */
+export interface RecipeRow {
+  id: string;
+  en: string;
+  ar: string;
+  type: RecipeType;
+  yield: string;
+  price: number | null;
+  threshold: number | null;
+  transfer: number | null;
+  prev_cost: number;
+  food: RecipeLine[]; // jsonb
+  pkg: RecipeLine[]; // jsonb
+  versions: RecipeVersion[]; // jsonb
+  meta: Record<string, unknown> | null;
+  updated_at: string;
+}
+
 // ─────────────────────── purchasing & receiving ──────────────────────────────
 
 /**
@@ -556,6 +581,7 @@ export const TABLES = [
   'profiles',
   'suppliers',
   'items',
+  'recipes',
   'stock',
   'movements',
   'transfers',
@@ -593,6 +619,7 @@ export interface RowByTable {
   profiles: ProfileRow;
   suppliers: SupplierRow;
   items: ItemRow;
+  recipes: RecipeRow;
   stock: StockRow;
   movements: MovementRow;
   transfers: TransferRow;
@@ -657,6 +684,11 @@ export const CORE_STATE_MAP: Record<keyof CoreState, CoreStateMapping> = {
     tables: ['items', 'stock'],
     rows: ['ItemRow', 'StockRow'],
     note: 'Item core → items; Item.onHand (Partial<Record<LocId,number>>) → one stock row per present LocId. Renames is_recipe/cat_ar/min_qty/max_qty/purch_factor.',
+  },
+  recipes: {
+    tables: ['recipes'],
+    rows: ['RecipeRow'],
+    note: '1:1. Recipe.food/pkg/versions stored as jsonb; rename prev_cost←prevCost.',
   },
   suppliers: {
     tables: ['suppliers'],

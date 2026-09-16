@@ -16,7 +16,7 @@ import { detailFor, resolvePurchFactor, ITEMS_SEED, type ConvRow, type ItemsStat
 import { ItemList, type TypeFilter } from './views/ItemList';
 import { ItemDetailView, tabsFor, TAB_KEYS, type ConvView, type TabKey } from './views/ItemDetail';
 import { AmberNote, Dialog, DialogBtns, FormInput } from './views/Dialog';
-import { recipeIdForItem } from '../recipes/data';
+import { recipeIdForItem } from '../recipes/logic';
 
 const DEMO_DATE = '12 Aug 2026';
 
@@ -135,7 +135,7 @@ export default function ItemsModule() {
 
   const openRecipe = () => {
     if (!item) { go('recipes'); return; }
-    const rid = recipeIdForItem(item.id);
+    const rid = recipeIdForItem(store, item.id);
     if (rid) go('recipes', { params: { recipe: rid } });
     else go('recipes');
   };

@@ -33,6 +33,7 @@ import type {
   Expense,
   FxRate,
   Item,
+  Recipe,
   LocId,
   Location,
   Movement,
@@ -62,6 +63,7 @@ import type {
   PoRow,
   ProductionPlanRow,
   ProfileRow,
+  RecipeRow,
   SettingsRow,
   ShiftClosingRow,
   StockRow,
@@ -201,6 +203,24 @@ function itemRow(i: Item): Omit<ItemRow, 'updated_at'> {
     max_qty: i.max ?? null,
     purch_factor: i.purchFactor ?? null,
     meta: i.meta ?? null,
+  };
+}
+
+function recipeRow(r: Recipe): Omit<RecipeRow, 'updated_at'> {
+  return {
+    id: r.id,
+    en: r.en,
+    ar: r.ar,
+    type: r.type,
+    yield: r.yield,
+    price: r.price ?? null,
+    threshold: r.threshold ?? null,
+    transfer: null,
+    prev_cost: r.prevCost,
+    food: r.food,
+    pkg: r.pkg,
+    versions: r.versions,
+    meta: null,
   };
 }
 
@@ -531,6 +551,7 @@ export async function pushCoreState(state: CoreState): Promise<void> {
   await upsertRows('profiles', state.users.map(profileRow));
   await upsertRows('suppliers', state.suppliers.map(supplierRow));
   await upsertRows('items', state.items.map(itemRow));
+  await upsertRows('recipes', state.recipes.map(recipeRow));
   await upsertRows('stock', state.items.flatMap(stockRows), 'item_id,loc');
 
   // ── perpetual ledger ──
@@ -665,6 +686,7 @@ export async function syncDiff(prev: CoreState, next: CoreState): Promise<void> 
   const userD = diffEntities(prev.users, next.users, (e) => e.id);
   const supD = diffEntities(prev.suppliers, next.suppliers, (e) => e.id);
   const itemD = diffEntities(prev.items, next.items, (e) => e.id);
+  const recipeD = diffEntities(prev.recipes, next.recipes, (e) => e.id);
   const movD = diffEntities(prev.movements, next.movements, (e) => e.id);
   const trD = diffEntities(prev.transfers, next.transfers, (e) => e.id);
   const wasteD = diffEntities(prev.waste, next.waste, (e) => e.id);
@@ -690,6 +712,7 @@ export async function syncDiff(prev: CoreState, next: CoreState): Promise<void> 
   await upsertRows('profiles', userD.changed.map(profileRow));
   await upsertRows('suppliers', supD.changed.map(supplierRow));
   await upsertRows('items', itemD.changed.map(itemRow));
+  await upsertRows('recipes', recipeD.changed.map(recipeRow));
 
   // NB: `movements` and `stock` are NOT written here. In cloud mode every stock change goes through
   // the store's postMovement → post_movement() RPC, which inserts the movement and applies the stock
@@ -761,6 +784,7 @@ export async function syncDiff(prev: CoreState, next: CoreState): Promise<void> 
   await deleteKeys('waste', 'id', wasteD.removedKeys);
   await deleteKeys('transfers', 'id', trD.removedKeys);
   // movements/stock are server-owned via post_movement() — not deleted from the client.
+  await deleteKeys('recipes', 'id', recipeD.removedKeys);
   await deleteKeys('items', 'id', itemD.removedKeys);
   await deleteKeys('suppliers', 'id', supD.removedKeys);
   await deleteKeys('profiles', 'id', userD.removedKeys);

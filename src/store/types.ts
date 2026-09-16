@@ -345,12 +345,31 @@ export interface Settings {
   period: string; // 'YYYY-MM' fixed demo period
 }
 
+// ── Recipes (owned by CoreState; re-exported from modules/recipes/data for existing imports) ──
+export type RecipeType = 'sub' | 'recipe' | 'prep' | 'menu';
+export type SubLine = [string, string, string, string]; // name, qty, unit cost, cost (display only)
+export interface RecipeLine {
+  en: string; ar: string; qty: number; unit: string; unitAr?: string;
+  cpu: number; // literal unit cost fallback when the line maps to no store item
+  isSub?: boolean; sub?: SubLine[];
+  itemId?: string; // explicit store-item / sub-recipe mapping
+  factor?: number; // line-unit → base-unit factor override
+}
+export type DiffMark = '+' | '~' | '−' | '=';
+export type DiffRow = [DiffMark, string, string];
+export interface RecipeVersion { v: number; date: string; who: string; reason: string; reasonAr?: string; cost: string; txns: number; diff: DiffRow[]; costChange: string }
+export interface Recipe {
+  id: string; en: string; ar: string; type: RecipeType; yield: string; price?: number; threshold?: number; prevCost: number;
+  food: RecipeLine[]; pkg: RecipeLine[]; versions: RecipeVersion[];
+}
+
 export interface CoreState {
   version: number;
   scope: Scope; // global location selector
   settings: Settings;
   locations: Location[];
   items: Item[];
+  recipes: Recipe[];
   suppliers: Supplier[];
   users: User[];
   movements: Movement[];

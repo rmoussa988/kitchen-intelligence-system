@@ -19,7 +19,7 @@ export function RecipeList({ ms, search, setSearch, typeFilter, setTypeFilter, o
   const nm = (o: Recipe) => (isAr ? o.ar : o.en);
   const nmAlt = (o: Recipe) => (isAr ? o.en : o.ar);
 
-  const ALLR = allRecipes(ms);
+  const ALLR = allRecipes(store, ms);
   const q = search.trim().toLowerCase();
   const filtered = ALLR.filter((r) =>
     (typeFilter === 'all' || r.type === typeFilter) &&

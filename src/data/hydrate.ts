@@ -26,6 +26,7 @@ import type {
   Expense,
   FxRate,
   Item,
+  Recipe,
   LocId,
   Location,
   Movement,
@@ -61,6 +62,14 @@ async function fetchAll<K extends TableName>(table: K): Promise<RowByTable[K][]>
     if (batch.length < PAGE) break;
   }
   return rows;
+}
+
+/** Like fetchAll, but a missing/failed table yields [] instead of failing the whole hydrate.
+ *  Used for tables added by a later migration (e.g. recipes) so the app is safe if it loads
+ *  before that migration has been applied. */
+async function fetchOptional<K extends TableName>(table: K): Promise<RowByTable[K][]> {
+  try { return await fetchAll(table); }
+  catch (e) { console.warn(`KIS hydrate: "${table}" unavailable, treating as empty —`, e); return []; }
 }
 
 /** timestamptz column → naive 'YYYY-MM-DDTHH:mm:ss' (drops offset / milliseconds). */
@@ -111,6 +120,7 @@ export async function loadCoreState(): Promise<CoreState> {
     profileRows,
     supplierRows,
     itemRows,
+    recipeRows,
     stockRows,
     movementRows,
     transferRows,
@@ -136,6 +146,7 @@ export async function loadCoreState(): Promise<CoreState> {
     fetchAll('profiles'),
     fetchAll('suppliers'),
     fetchAll('items'),
+    fetchOptional('recipes'),
     fetchAll('stock'),
     fetchAll('movements'),
     fetchAll('transfers'),
@@ -227,6 +238,21 @@ export async function loadCoreState(): Promise<CoreState> {
     onHand: onHandByItem.get(r.id) ?? {},
     purchFactor: r.purch_factor ?? undefined,
     meta: r.meta ?? undefined,
+  }));
+
+  // ── recipes (food/pkg/versions are jsonb, passed through) ──
+  const recipes: Recipe[] = recipeRows.map((r) => ({
+    id: r.id,
+    en: r.en,
+    ar: r.ar,
+    type: r.type,
+    yield: r.yield,
+    price: r.price ?? undefined,
+    threshold: r.threshold ?? undefined,
+    prevCost: r.prev_cost,
+    food: r.food ?? [],
+    pkg: r.pkg ?? [],
+    versions: r.versions ?? [],
   }));
 
   // ── movements ──
@@ -510,6 +536,7 @@ export async function loadCoreState(): Promise<CoreState> {
     settings,
     locations,
     items,
+    recipes,
     suppliers,
     users,
     movements,

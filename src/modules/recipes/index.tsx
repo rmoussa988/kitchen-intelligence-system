@@ -11,7 +11,7 @@ import { useStore, useModuleState } from '../../store';
 import { Btn, Page, ScreenId, Tabs, useToast, P, shortDate } from '../../ui';
 import { useModuleNav } from '../../shell/DesktopShell';
 import { TEXT } from './text';
-import { KIND_LABEL, LINE_KINDS, RECIPES, TYPE_STYLE, type DiffRow, type LineKind, type Recipe, type RecipeLine, type RecipeType, type RecipeVersion } from './data';
+import { KIND_LABEL, LINE_KINDS, TYPE_STYLE, type DiffRow, type LineKind, type Recipe, type RecipeLine, type RecipeType, type RecipeVersion } from './data';
 import { RECIPES_SEED, effPrice as effPriceOf, effThreshold, findRecipe, fmtCpu, fmtPoolCpu, kindPool, lineCpu, matchItem, money2, recipeCost, versionsOf, type RecipesState } from './logic';
 import { RecipeList, type RTypeFilter } from './views/RecipeList';
 import { RecipeBuilder, EXPANDED_INIT, HELP_INIT, type HelpState, type QtyEditReq } from './views/RecipeBuilder';
@@ -30,8 +30,8 @@ export default function RecipesModule() {
   const [ms, setMs] = useModuleState<RecipesState>('recipes', RECIPES_SEED);
 
   const spRecipe = sp.get('recipe') ?? sp.get('id');
-  const [view, setView] = useState<'list' | 'detail'>(() => (spRecipe && findRecipe(ms, spRecipe) ? 'detail' : 'list'));
-  const [recipeId, setRecipeId] = useState<string | null>(() => (spRecipe && findRecipe(ms, spRecipe) ? spRecipe : null));
+  const [view, setView] = useState<'list' | 'detail'>(() => (spRecipe && findRecipe(store, ms, spRecipe) ? 'detail' : 'list'));
+  const [recipeId, setRecipeId] = useState<string | null>(() => (spRecipe && findRecipe(store, ms, spRecipe) ? spRecipe : null));
   const [tab, setTab] = useState<Tab>('builder');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<RTypeFilter>('all');
@@ -54,7 +54,7 @@ export default function RecipesModule() {
 
   // deep link (?recipe=MI-101 / ?id=)
   useEffect(() => {
-    if (spRecipe && findRecipe(ms, spRecipe)) { setRecipeId(spRecipe); setView('detail'); setTab('builder'); setDiffV(null); }
+    if (spRecipe && findRecipe(store, ms, spRecipe)) { setRecipeId(spRecipe); setView('detail'); setTab('builder'); setDiffV(null); }
     // arriving from Production gap review with a recipe-change suggestion (MGT-PRD-06 → B3)
     if (sp.get('suggest')) {
       const note = sp.get('note');
@@ -63,11 +63,12 @@ export default function RecipesModule() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spRecipe]);
 
-  const r: Recipe = findRecipe(ms, recipeId) ?? RECIPES[0];
+  // r is undefined on a fresh/empty database — guard everything below and render the (empty) list.
+  const r: Recipe | undefined = findRecipe(store, ms, recipeId);
   const nm = (o: { en: string; ar: string }) => (isAr ? o.ar : o.en);
-  const versions = versionsOf(r, ms);
-  const c = recipeCost(r, ms, store);
-  const dts = TYPE_STYLE[r.type];
+  const versions = r ? versionsOf(r, ms) : [];
+  const c = r ? recipeCost(r, ms, store) : null;
+  const dts = TYPE_STYLE[r?.type ?? 'menu'];
   const screenId = tab === 'versions' ? 'MGT-RCP-03' : 'MGT-RCP-02';
 
   const openRecipe = (id: string) => { setRecipeId(id); setView('detail'); setTab('builder'); setDiffV(null); };
@@ -83,6 +84,7 @@ export default function RecipesModule() {
   // ── save new version (append-only, mandatory reason) ──
   const demoDate = () => { const d = new Date(store.now()); return `${shortDate(d)} ${d.getFullYear()}`; };
   const saveGo = () => {
+    if (!r || !c) return;
     if (!saveReason.trim()) return;
     const diff: DiffRow[] = [];
     const extras = ms.extraLines[r.id] ?? [], extrasP = ms.extraPkg[r.id] ?? [];
@@ -107,7 +109,29 @@ export default function RecipesModule() {
     if (!diff.length) diff.push(['~', t.noStructural, `${money2(r.prevCost)} → ${money2(c.total)}`]);
     const newV: RecipeVersion = { v: versions[0].v + 1, date: demoDate(), who: t.you, reason: saveReason, reasonAr: saveReason, cost: money2(c.total), txns: 0, diff, costChange: `${money2(r.prevCost)} → ${money2(c.total)}` };
     const rid = r.id;
-    setMs((d) => { d.extraVersions[rid] = [newV, ...(d.extraVersions[rid] ?? [])]; });
+    // Commit the builder's edits (qty overrides, added lines, price/threshold/yield) ONTO the recipe
+    // row so the recipes table is the source of truth, then push the new version — then clear the
+    // transient module_state overlays for this recipe.
+    const committedFood = r.food.concat(extras).map((ln, i) => ({ ...ln, qty: ms.qtyOverrides[`${rid}:f:${i}`] ?? ln.qty }));
+    const committedPkg = r.pkg.concat(extrasP).map((ln, i) => ({ ...ln, qty: ms.qtyOverrides[`${rid}:p:${i}`] ?? ln.qty }));
+    const committedPrice = pOv != null ? (parseFloat(pOv) || undefined) : r.price;
+    const committedTh = tOv != null ? (parseFloat(tOv) || undefined) : r.threshold;
+    const committedYield = yOv ? `${yOv.qty} ${yOv.unit}` : r.yield;
+    store.update((d) => {
+      const rec = d.recipes.find((x) => x.id === rid);
+      if (rec) {
+        rec.food = committedFood; rec.pkg = committedPkg;
+        rec.price = committedPrice; rec.threshold = committedTh; rec.yield = committedYield;
+        rec.prevCost = c.total;
+        rec.versions = [newV, ...rec.versions];
+      }
+    });
+    setMs((d) => {
+      for (const k of Object.keys(d.qtyOverrides)) if (k.startsWith(rid + ':')) delete d.qtyOverrides[k];
+      delete d.extraLines[rid]; delete d.extraPkg[rid];
+      delete d.priceOv[rid]; delete d.thOv[rid]; delete d.yieldOv[rid]; delete d.xferOv[rid];
+      delete d.extraVersions[rid];
+    });
     store.logAudit({ action: 'Recipe version saved', entity: `${r.id} ${r.en} · v${newV.v}`, oldValue: money2(r.prevCost), newValue: `${money2(c.total)} · ${saveReason.trim()}`, moduleId: 'recipes' });
     const eff = effPriceOf(r, ms);
     const th = effThreshold(r, ms);
@@ -134,7 +158,7 @@ export default function RecipesModule() {
   // ── quick creation forms ──
   const openNewRecipe = () => { setForm('recipe'); setF1(''); setF2(''); setF3(''); setFormType('menu'); };
   const openAddLine = () => { setForm('line'); setF1(''); setF2(''); setF3(''); setLineKind('ing'); };
-  const kinds = LINE_KINDS[r.type] || ['ing'];
+  const kinds = LINE_KINDS[r?.type ?? 'menu'] || ['ing'];
   const kind: LineKind = kinds.includes(lineKind) ? lineKind : kinds[0];
   const pool = form === 'line' ? kindPool(kind, ms, store) : [];
   const matched = form === 'line' ? matchItem(f1, kind, ms, store) : null;
@@ -150,7 +174,7 @@ export default function RecipesModule() {
     if (form === 'recipe') {
       const isMenu = formType === 'menu';
       const price = parseFloat(f3);
-      const id = 'NEW-' + String(ms.extraRecipes.length + 1).padStart(2, '0');
+      const id = 'NEW-' + String(store.state.recipes.filter((x) => x.id.startsWith('NEW-')).length + 1).padStart(2, '0');
       const nr: Recipe = {
         id, en: f1.trim(), ar: f1.trim(), type: formType,
         yield: isMenu ? '1 PCS' : t.yieldTbd,
@@ -158,7 +182,7 @@ export default function RecipesModule() {
         food: [], pkg: [],
         versions: [{ v: 1, date: demoDate(), who: t.you, reason: 'Initial recipe', reasonAr: 'الوصفة الأولية', cost: '$0.00', txns: 0, diff: [['+', 'Initial recipe', '0 lines']], costChange: '— → $0.00' }],
       };
-      setMs((d) => { d.extraRecipes.push(nr); });
+      store.update((d) => { d.recipes.push(nr); });
       store.logAudit({ action: 'Recipe created', entity: `${id} ${nr.en} · v1`, newValue: t.types[formType], moduleId: 'recipes' });
       setForm(null);
       setRecipeId(id); setView('detail'); setTab('builder'); setDiffV(null);
@@ -166,7 +190,7 @@ export default function RecipesModule() {
     } else {
       const qv = parseFloat(f2);
       const it = matched;
-      if (isNaN(qv) || qv <= 0 || !it) return;
+      if (isNaN(qv) || qv <= 0 || !it || !r) return;
       const ln: RecipeLine = { en: it.en, ar: it.ar, qty: qv, unit: it.unit || 'PCS', unitAr: it.unit || 'قطعة', cpu: it.cpu, itemId: it.itemId };
       const rid = r.id;
       if (kind === 'pkg') {
@@ -194,7 +218,7 @@ export default function RecipesModule() {
 
   return (
     <>
-      {view === 'list' ? (
+      {view === 'list' || !r ? (
         <RecipeList ms={ms} search={search} setSearch={setSearch} typeFilter={typeFilter} setTypeFilter={setTypeFilter} onOpen={openRecipe} onNew={openNewRecipe} />
       ) : (
         <Page>
@@ -225,7 +249,7 @@ export default function RecipesModule() {
 
       {form && (
         <Dialog onClose={() => setForm(null)}>
-          <div style={{ fontSize: 17, fontWeight: 700 }}>{form === 'recipe' ? t.formNewRecipe : t.formAddLine + nm(r)}</div>
+          <div style={{ fontSize: 17, fontWeight: 700 }}>{form === 'recipe' ? t.formNewRecipe : t.formAddLine + (r ? nm(r) : '')}</div>
           <div style={{ fontSize: 13, color: P.text3, marginTop: 4, lineHeight: 1.5 }}>{form === 'recipe' ? t.formSubRecipe : t.formSubLine}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 14 }}>
             {form === 'line' && kinds.length > 1 && (
