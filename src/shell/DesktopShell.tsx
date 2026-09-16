@@ -85,14 +85,11 @@ export default function DesktopShell() {
               <div style={{ fontSize: 10.5, color: S.muted }}>{userRole}</div>
             </div>
             <div style={{ flex: 1 }} />
-            {isCloud && (
-              <button title={t.seed} onClick={async () => {
-                if (!window.confirm(t.seedQ)) return;
-                try { await store.pushToCloud(); window.alert(t.seedOk); }
-                catch (err) { window.alert(t.seedErr + (err instanceof Error ? err.message : String(err))); }
-              }} style={{ border: 'none', background: 'transparent', color: S.muted, cursor: 'pointer', fontSize: 14, padding: 4 }}>☁︎↑</button>
+            {/* Demo-seed upload removed for production so real data can't be re-seeded by accident.
+                (store.pushToCloud remains available if a demo/reset tool is ever wanted again.) */}
+            {!isCloud && (
+              <button title={t.reset} onClick={() => { if (window.confirm(t.resetQ)) store.reset(); }} style={{ border: 'none', background: 'transparent', color: S.muted, cursor: 'pointer', fontSize: 14, padding: 4 }}>↺</button>
             )}
-            <button title={t.reset} onClick={() => { if (window.confirm(t.resetQ)) store.reset(); }} style={{ border: 'none', background: 'transparent', color: S.muted, cursor: 'pointer', fontSize: 14, padding: 4 }}>↺</button>
           </div>
         </div>
       </aside>
